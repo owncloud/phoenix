@@ -12,6 +12,7 @@ import path from 'path'
 import SidebarQuota from '../components/SidebarQuota.vue'
 import PQueue from 'p-queue'
 import { buildResource } from '../helpers/resources'
+import { $gettext, $gettextInterpolate } from '../gettext'
 
 function _extName(fileName) {
   let ext = ''
@@ -234,14 +235,14 @@ function _aggregateFileShares(data, incomingShares = false, allowSharePerm) {
   )(data)
 }
 
-function _buildShare(s, file, $gettext, allowSharePerm) {
+function _buildShare(s, file, allowSharePerm) {
   if (parseInt(s.share_type, 10) === shareTypes.link) {
-    return _buildLink(s, $gettext)
+    return _buildLink(s)
   }
   return _buildCollaboratorShare(s, file, allowSharePerm)
 }
 
-function _buildLink(link, $gettext) {
+function _buildLink(link) {
   let description = ''
 
   // FIXME: use bitmask matching with constants
@@ -343,7 +344,7 @@ function _buildCollaboratorShare(s, file, allowSharePerm) {
 export default {
   loadFolder(
     context,
-    { client, absolutePath, $gettext, routeName, loadSharesTree = false, isPublicPage = false }
+    { client, absolutePath, routeName, loadSharesTree = false, isPublicPage = false }
   ) {
     context.commit('UPDATE_FOLDER_LOADING', true)
     context.commit('CLEAR_CURRENT_FILES_LIST')
@@ -391,8 +392,7 @@ export default {
               if (loadSharesTree) {
                 context.dispatch('loadSharesTree', {
                   client,
-                  path: absolutePath,
-                  $gettext
+                  path: absolutePath
                 })
               }
             }
@@ -431,7 +431,7 @@ export default {
         })
     })
   },
-  loadTrashbin(context, { client, $gettext }) {
+  loadTrashbin(context, { client }) {
     context.commit('UPDATE_FOLDER_LOADING', true)
     context.commit('CLEAR_CURRENT_FILES_LIST')
 
@@ -482,7 +482,7 @@ export default {
         context.commit('UPDATE_FOLDER_LOADING', false)
       })
   },
-  loadFolderSharedFromMe(context, { client, $gettext }) {
+  loadFolderSharedFromMe(context, { client }) {
     context.commit('UPDATE_FOLDER_LOADING', true)
     context.commit('CLEAR_CURRENT_FILES_LIST')
 
@@ -522,7 +522,7 @@ export default {
         context.commit('UPDATE_FOLDER_LOADING', false)
       })
   },
-  loadFolderSharedWithMe(context, { client, $gettext }) {
+  loadFolderSharedWithMe(context, { client }) {
     context.commit('UPDATE_FOLDER_LOADING', true)
     context.commit('CLEAR_CURRENT_FILES_LIST')
 
@@ -627,7 +627,7 @@ export default {
       context.commit('ADD_FILE', _buildFile(file))
     }
   },
-  deleteFiles(context, { files, client, publicPage, $gettext, $gettextInterpolate }) {
+  deleteFiles(context, { files, client, publicPage }) {
     const promises = []
     for (const file of files) {
       let p = null
@@ -719,7 +719,7 @@ export default {
         })
     })
   },
-  loadCurrentFileOutgoingShares(context, { client, path, $gettext }) {
+  loadCurrentFileOutgoingShares(context, { client, path }) {
     context.commit('CURRENT_FILE_OUTGOING_SHARES_SET', [])
     context.commit('CURRENT_FILE_OUTGOING_SHARES_ERROR', null)
     context.commit('CURRENT_FILE_OUTGOING_SHARES_LOADING', true)
@@ -734,7 +734,6 @@ export default {
             return _buildShare(
               element.shareInfo,
               context.getters.highlightedFile,
-              $gettext,
               !context.rootGetters.isOcis
             )
           })
@@ -815,7 +814,7 @@ export default {
         })
     })
   },
-  addShare(context, { client, path, $gettext, shareWith, shareType, permissions, expirationDate }) {
+  addShare(context, { client, path, shareWith, shareType, permissions, expirationDate }) {
     if (shareType === shareTypes.group) {
       client.shares
         .shareFileWithGroup(path, shareWith, {
@@ -909,7 +908,7 @@ export default {
    * This will add new entries into the shares tree and will
    * not remove unrelated existing ones.
    */
-  loadSharesTree(context, { client, path, $gettext }) {
+  loadSharesTree(context, { client, path }) {
     context.commit('SHARESTREE_ERROR', null)
     // prune shares tree cache for all unrelated paths, keeping only
     // existing relevant parent entries
@@ -946,7 +945,6 @@ export default {
                   ..._buildShare(
                     element.shareInfo,
                     { type: 'folder' },
-                    $gettext,
                     !context.rootGetters.isOcis
                   ),
                   outgoing: true,
@@ -1003,12 +1001,12 @@ export default {
     context.commit('SET_PUBLIC_LINK_PASSWORD', password)
   },
 
-  addLink(context, { path, client, $gettext, params }) {
+  addLink(context, { path, client, params }) {
     return new Promise((resolve, reject) => {
       client.shares
         .shareFileWithLink(path, params)
         .then(data => {
-          const link = _buildShare(data.shareInfo, null, $gettext, !context.rootGetters.isOcis)
+          const link = _buildShare(data.shareInfo, null, !context.rootGetters.isOcis)
           context.commit('CURRENT_FILE_OUTGOING_SHARES_ADD', link)
           context.commit('UPDATE_CURRENT_FILE_SHARE_TYPES')
           resolve(link)
@@ -1018,12 +1016,12 @@ export default {
         })
     })
   },
-  updateLink(context, { id, client, $gettext, params }) {
+  updateLink(context, { id, client, params }) {
     return new Promise((resolve, reject) => {
       client.shares
         .updateShare(id, params)
         .then(data => {
-          const link = _buildShare(data.shareInfo, null, $gettext, !context.rootGetters.isOcis)
+          const link = _buildShare(data.shareInfo, null, !context.rootGetters.isOcis)
           context.commit('CURRENT_FILE_OUTGOING_SHARES_UPDATE', link)
           resolve(link)
         })
@@ -1043,7 +1041,7 @@ export default {
   },
 
   // TODO: Think of a better name
-  pendingShare(context, { client, item, type, $gettext }) {
+  pendingShare(context, { client, item, type }) {
     // TODO: Move request to owncloud-sdk
     client.requests
       .ocs({
@@ -1053,8 +1051,7 @@ export default {
       })
       .then(_ => {
         context.dispatch('loadFolderSharedWithMe', {
-          client: client,
-          $gettext: $gettext
+          client: client
         })
       })
       .catch(e => {
@@ -1087,5 +1084,10 @@ export default {
 
   clearResourcesToDeleteList({ commit }) {
     commit('CLEAR_RESOURCES_TO_DELETE_LIST')
+  },
+
+  loadIndicators({ dispatch, commit }, { client, currentFolder }) {
+    dispatch('loadSharesTree', { client, path: currentFolder })
+    commit('LOAD_INDICATORS')
   }
 }
