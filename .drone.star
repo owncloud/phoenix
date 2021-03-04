@@ -1027,6 +1027,12 @@ def installNPM():
 		'image': 'owncloudci/nodejs:12',
 		'pull': 'always',
 		'commands': [
+			'git clone https://github.com/owncloud/owncloud-sdk',
+			'cd owncloud-sdk',
+			'git checkout update-webdav-client',
+			'yarn',
+			'yarn build:system',
+			'cd ..',
 			'yarn install --frozen-lockfile'
 		]
 	}]
