@@ -2,7 +2,6 @@ import moment from 'moment'
 import uniqueId from 'lodash-es/uniqueId'
 import flow from 'lodash/fp/flow'
 import map from 'lodash/fp/map'
-import filter from 'lodash/fp/filter'
 import reduce from 'lodash/fp/reduce'
 import values from 'lodash/fp/values'
 import { getParentPaths } from '../helpers/path'
@@ -63,14 +62,7 @@ function _buildFile(file) {
     shareTypes: (function() {
       let shareTypes = file.fileInfo['{http://owncloud.org/ns}share-types']
       if (shareTypes) {
-        shareTypes = flow(
-          filter(
-            xmlvalue =>
-              xmlvalue.namespaceURI === 'http://owncloud.org/ns' &&
-              xmlvalue.nodeName.split(':')[1] === 'share-type'
-          ),
-          map(xmlvalue => parseInt(xmlvalue.textContent || xmlvalue.text, 10))
-        )(shareTypes)
+        shareTypes = shareTypes.map(xmlvalue => parseInt(xmlvalue, 10))
       }
 
       return shareTypes || []
