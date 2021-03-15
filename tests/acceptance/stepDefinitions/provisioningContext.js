@@ -155,12 +155,32 @@ function blockUser(userId) {
   return httpHelper.putOCS(apiURL, 'admin')
 }
 
-Given('user {string} has been created with default attributes and {string} skeleton files', async function(userId, skeletonType) {
-  await cacheAndSetConfigs(client.globals.backend_url,skeletonType)
+function cacheAndSetConfigsOnLocalAndRemote(skeletonType) {
+  if (client.globals.ocis) {
+    return
+  }
+  if (client.globals.remote_backend_url) {
+    cacheAndSetConfigs(client.globals.remote_backend_url, skeletonType)
+  }
+  return cacheAndSetConfigs(client.globals.backend_url, skeletonType)
+}
+
+Given('user {string} has been created with default attributes', async function(userId) {
+  await cacheAndSetConfigsOnLocalAndRemote('large')
   await deleteUser(userId)
   await createDefaultUser(userId)
   await initUser(userId)
 })
+
+Given(
+  'user {string} has been created with default attributes and {string} skeleton files',
+  async function(userId, skeletonType) {
+    await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
+    await deleteUser(userId)
+    await createDefaultUser(userId)
+    await initUser(userId)
+  }
+)
 
 Given('user {string} has been deleted', function(userId) {
   return deleteUser(userId)

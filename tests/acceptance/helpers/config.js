@@ -1,4 +1,4 @@
-import {client} from "nightwatch-api";
+import { client } from 'nightwatch-api'
 
 const httpHelper = require('./httpHelper')
 const occHelper = require('./occHelper')
@@ -12,15 +12,16 @@ const limit = pLimit(10)
 const config = {}
 
 async function setSkeletonDirectory(server, admin, skeletonType) {
-  let directoryName=""
+  let directoryName
   switch (skeletonType) {
-    case 'small':
-      this.directoryName = 'webUISkeleton'
-      break
     case 'large':
-      this.directoryName = 'apiSkeleton'
+      directoryName = 'webUISkeleton'
+      break
+    case 'small':
+      directoryName = 'apiSkeleton'
       break
     default:
+      directoryName = 'webUISkeleton'
       break
   }
   const data = JSON.stringify({ directory: directoryName })
