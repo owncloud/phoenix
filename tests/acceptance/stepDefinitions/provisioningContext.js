@@ -10,6 +10,7 @@ const { join } = require('../helpers/path')
 
 const ldap = require('../helpers/ldapHelper')
 const sharingHelper = require('../helpers/sharingHelper')
+const { cacheAndSetConfigs } = require('../helpers/config')
 
 function createDefaultUser(userId) {
   const password = userSettings.getPasswordForUser(userId)
@@ -154,7 +155,8 @@ function blockUser(userId) {
   return httpHelper.putOCS(apiURL, 'admin')
 }
 
-Given('user {string} has been created with default attributes', async function(userId) {
+Given('user {string} has been created with default attributes and {string} skeleton files', async function(userId, skeletonType) {
+  await cacheAndSetConfigs(client.globals.backend_url,skeletonType)
   await deleteUser(userId)
   await createDefaultUser(userId)
   await initUser(userId)

@@ -1,3 +1,5 @@
+import {client} from "nightwatch-api";
+
 const httpHelper = require('./httpHelper')
 const occHelper = require('./occHelper')
 const { difference } = require('./objects')
@@ -9,8 +11,19 @@ const limit = pLimit(10)
 
 const config = {}
 
-async function setSkeletonDirectory(server, admin) {
-  const data = JSON.stringify({ directory: 'webUISkeleton' })
+async function setSkeletonDirectory(server, admin, skeletonType) {
+  let directoryName=""
+  switch (skeletonType) {
+    case 'small':
+      this.directoryName = 'webUISkeleton'
+      break
+    case 'large':
+      this.directoryName = 'apiSkeleton'
+      break
+    default:
+      break
+  }
+  const data = JSON.stringify({ directory: directoryName })
   const apiUrl = 'apps/testing/api/v1/testingskeletondirectory'
   const resp = await httpHelper.postOCS(apiUrl, 'admin', data, {
     'Content-Type': 'application/json'
@@ -67,13 +80,21 @@ export async function getConfigs() {
   return stdOut
 }
 
+export async function cacheAndSetConfigs(server, skeletonType) {
+  if (client.globals.ocis) {
+    return
+  }
+  await cacheConfigs(server)
+  return setConfigs(server, client.globals.backend_admin_username, skeletonType)
+}
+
 export async function cacheConfigs(server) {
   config[server] = await getConfigs()
   return config
 }
 
-export async function setConfigs(server, admin = 'admin') {
-  await setSkeletonDirectory(server, admin)
+export async function setConfigs(server, admin = 'admin', skeletonType) {
+  await setSkeletonDirectory(server, admin, skeletonType)
 }
 
 export async function rollbackConfigs(server) {

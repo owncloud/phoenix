@@ -57,29 +57,29 @@ After(function deleteLdapClient() {
   }
 })
 
-async function cacheAndSetConfigs(server) {
-  if (client.globals.ocis) {
-    return
-  }
-  await cacheConfigs(server)
-  return setConfigs(server, client.globals.backend_admin_username)
-}
+// async function cacheAndSetConfigs(server, skeletonType) {
+//   if (client.globals.ocis) {
+//     return
+//   }
+//   await cacheConfigs(server)
+//   return setConfigs(server, client.globals.backend_admin_username, skeletonType)
+// }
 
-Before(function cacheAndSetConfigsOnLocal() {
-  if (client.globals.ocis) {
-    return
-  }
-  return cacheAndSetConfigs(client.globals.backend_url)
-})
+// Before(function cacheAndSetConfigsOnLocal() {
+//   if (client.globals.ocis) {
+//     return
+//   }
+//   return cacheAndSetConfigs(client.globals.backend_url)
+// })
 
-Before(function cacheAndSetConfigsOnRemoteIfExists() {
-  if (client.globals.ocis) {
-    return
-  }
-  if (client.globals.remote_backend_url) {
-    return cacheAndSetConfigs(client.globals.remote_backend_url)
-  }
-})
+// Before(function cacheAndSetConfigsOnRemoteIfExists() {
+//   if (client.globals.ocis) {
+//     return
+//   }
+//   if (client.globals.remote_backend_url) {
+//     return cacheAndSetConfigs(client.globals.remote_backend_url)
+//   }
+// })
 
 // After hooks are run in reverse order in which they are defined
 // https://github.com/cucumber/cucumber-js/blob/master/docs/support_files/hooks.md#hooks
