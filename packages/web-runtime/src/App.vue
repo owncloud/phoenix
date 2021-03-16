@@ -1,5 +1,6 @@
 <template>
   <div class="uk-height-1-1">
+    <oc-hidden-announcer :announcement="announcement" level="polite" />
     <skip-to target="main">Skip to main</skip-to>
     <div id="Web" class="uk-height-1-1">
       <div
@@ -98,7 +99,8 @@ export default {
     return {
       appNavigationVisible: false,
       $_notificationsInterval: null,
-      windowWidth: 0
+      windowWidth: 0,
+      announcement: ''
     }
   },
   computed: {
@@ -218,6 +220,7 @@ export default {
     $route: {
       immediate: true,
       handler: function(to) {
+        this.announceRouteChange(to)
         document.title = this.extractPageTitleFromRoute(to)
       }
     },
@@ -321,6 +324,24 @@ export default {
 
       this.appNavigationVisible = false
     },
+
+    announceRouteChange(route) {
+      const titleSegments = [route.meta.pageTitle || route.name]
+
+      if (route.params.item) {
+        if (route.name.startsWith('files-')) {
+          const fileTree = route.params.item.split('/').filter(el => el.length)
+          if (fileTree.length) {
+            titleSegments.push(fileTree.pop())
+          }
+        } else {
+          titleSegments.push(route.params.item)
+        }
+      }
+
+      this.announcement = `${this.$gettext('Navigated to')} "${titleSegments.join(' - ')}"`
+    },
+
     extractPageTitleFromRoute(route) {
       const titleSegments = [this.configuration.theme.general.name]
 
