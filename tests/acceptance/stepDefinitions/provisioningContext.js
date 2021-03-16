@@ -12,17 +12,24 @@ const ldap = require('../helpers/ldapHelper')
 const sharingHelper = require('../helpers/sharingHelper')
 const { cacheAndSetConfigs } = require('../helpers/config')
 
-function createDefaultUser(userId) {
+function createDefaultUser(userId, skeletonType) {
   const password = userSettings.getPasswordForUser(userId)
   const displayname = userSettings.getDisplayNameOfDefaultUser(userId)
   const email = userSettings.getEmailAddressOfDefaultUser(userId)
   if (client.globals.ldap) {
     return ldap.createUser(client.globals.ldapClient, userId)
   }
-  return createUser(userId, password, displayname, email)
+  return createUser(userId, password, displayname, email, skeletonType)
 }
 
-function createUser(userId, password, displayName = false, email = false) {
+async function createUser(
+  userId,
+  password,
+  displayName = false,
+  email = false,
+  skeletonType = 'large'
+) {
+  await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
   const body = new URLSearchParams()
   if (client.globals.ocis) {
     if (!email) {
@@ -166,18 +173,18 @@ function cacheAndSetConfigsOnLocalAndRemote(skeletonType) {
 }
 
 Given('user {string} has been created with default attributes', async function(userId) {
-  await cacheAndSetConfigsOnLocalAndRemote('large')
+  // await cacheAndSetConfigsOnLocalAndRemote('large')
   await deleteUser(userId)
-  await createDefaultUser(userId)
+  await createDefaultUser(userId, 'large')
   await initUser(userId)
 })
 
 Given(
   'user {string} has been created with default attributes and {string} skeleton files',
   async function(userId, skeletonType) {
-    await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
+    // await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
     await deleteUser(userId)
-    await createDefaultUser(userId)
+    await createDefaultUser(userId, skeletonType)
     await initUser(userId)
   }
 )
