@@ -326,24 +326,16 @@ export default {
     },
 
     announceRouteChange(route) {
-      const titleSegments = [route.meta.pageTitle || route.name]
-
-      if (route.params.item) {
-        if (route.name.startsWith('files-')) {
-          const fileTree = route.params.item.split('/').filter(el => el.length)
-          if (fileTree.length) {
-            titleSegments.push(fileTree.pop())
-          }
-        } else {
-          titleSegments.push(route.params.item)
-        }
-      }
-
-      this.announcement = `${this.$gettext('Navigated to')} "${titleSegments.join(' - ')}"`
+      const pageTitle = this.extractPageTitleFromRoute(route, false)
+      this.announcement = `${this.$gettext('Navigated to')} "${pageTitle}"`
     },
 
-    extractPageTitleFromRoute(route) {
-      const titleSegments = [route.meta.name || route.name, this.configuration.theme.general.name]
+    extractPageTitleFromRoute(route, includeGeneralName = true) {
+      const titleSegments = [route.meta.pageTitle || route.name]
+
+      if (includeGeneralName) {
+        titleSegments.push(this.configuration.theme.general.name)
+      }
 
       if (route.params.item) {
         if (route.name.startsWith('files-')) {
