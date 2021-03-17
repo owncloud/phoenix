@@ -10,7 +10,7 @@ const { join } = require('../helpers/path')
 
 const ldap = require('../helpers/ldapHelper')
 const sharingHelper = require('../helpers/sharingHelper')
-const { cacheAndSetConfigs } = require('../helpers/config')
+const { setConfigs } = require('../helpers/config')
 
 function createDefaultUser(userId, skeletonType) {
   const password = userSettings.getPasswordForUser(userId)
@@ -29,7 +29,7 @@ async function createUser(
   email = false,
   skeletonType = 'large'
 ) {
-  await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
+  await setConfigs(skeletonType)
   const body = new URLSearchParams()
   if (client.globals.ocis) {
     if (!email) {
@@ -162,18 +162,7 @@ function blockUser(userId) {
   return httpHelper.putOCS(apiURL, 'admin')
 }
 
-function cacheAndSetConfigsOnLocalAndRemote(skeletonType) {
-  if (client.globals.ocis) {
-    return
-  }
-  if (client.globals.remote_backend_url) {
-    cacheAndSetConfigs(client.globals.remote_backend_url, skeletonType)
-  }
-  return cacheAndSetConfigs(client.globals.backend_url, skeletonType)
-}
-
 Given('user {string} has been created with default attributes', async function(userId) {
-  // await cacheAndSetConfigsOnLocalAndRemote('large')
   await deleteUser(userId)
   await createDefaultUser(userId, 'large')
   await initUser(userId)
@@ -182,7 +171,6 @@ Given('user {string} has been created with default attributes', async function(u
 Given(
   'user {string} has been created with default attributes and {string} skeleton files',
   async function(userId, skeletonType) {
-    // await cacheAndSetConfigsOnLocalAndRemote(skeletonType)
     await deleteUser(userId)
     await createDefaultUser(userId, skeletonType)
     await initUser(userId)

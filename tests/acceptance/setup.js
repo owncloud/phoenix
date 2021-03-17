@@ -1,6 +1,6 @@
 import { setDefaultTimeout, After, Before, defineParameterType } from 'cucumber'
 import { createSession, closeSession, client, startWebDriver, stopWebDriver } from 'nightwatch-api'
-import { rollbackConfigs } from './helpers/config'
+import { rollbackConfigs, cacheConfigs } from './helpers/config'
 import { getAllLogsWithDateTime } from './helpers/browserConsole.js'
 const codify = require('./helpers/codify')
 
@@ -54,6 +54,29 @@ Before(function createLdapClient() {
 After(function deleteLdapClient() {
   if (client.globals.ldap && client.globals.ldapClient) {
     return ldap.terminate(client.globals.ldapClient)
+  }
+})
+
+async function cacheAndSetConfigs(server) {
+  if (client.globals.ocis) {
+    return
+  }
+  await cacheConfigs(server)
+}
+
+Before(function cacheAndSetConfigsOnLocal() {
+  if (client.globals.ocis) {
+    return
+  }
+  return cacheAndSetConfigs(client.globals.backend_url)
+})
+
+Before(function cacheAndSetConfigsOnRemoteIfExists() {
+  if (client.globals.ocis) {
+    return
+  }
+  if (client.globals.remote_backend_url) {
+    return cacheAndSetConfigs(client.globals.remote_backend_url)
   }
 })
 
