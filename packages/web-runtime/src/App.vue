@@ -343,11 +343,7 @@ export default {
     },
 
     extractPageTitleFromRoute(route) {
-      const titleSegments = [this.configuration.theme.general.name]
-
-      if (route.meta.pageTitle) {
-        titleSegments.unshift(route.meta.pageTitle)
-      }
+      const titleSegments = [route.meta.name || route.name, this.configuration.theme.general.name]
 
       if (route.params.item) {
         if (route.name.startsWith('files-')) {
